@@ -261,7 +261,7 @@ fun HomeScreen(
                             .padding(48.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterVertically) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 imageVector = Icons.Default.EventBusy,
                                 contentDescription = null,
