@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Muslim Link - Luma Model (Editorial Events & Social Sharing)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --midnight-ink: #14171F;
+      --midnight-surface: #1B202B;
+      --midnight-card: #202634;
+      --midnight-elevated: #283042;
+      --midnight-outline: #2E374A;
+      --soft-gold: #E2B96A;
+      --soft-gold-container: rgba(226, 185, 106, 0.15);
+      --sage-accent: #8CA38D;
+      --sage-container: rgba(140, 163, 141, 0.18);
+      --text-primary: #FFFFFF;
+      --text-secondary: #9DA8B9;
+      --text-muted: #6C788E;
+      --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #0b0d12;
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px 10px;
+    }
+
+    /* Device Mockup Shell */
+    .device-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 410px;
+      height: 860px;
+      background: #000;
+      border-radius: 46px;
+      padding: 12px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(226, 185, 106, 0.25);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .device-screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: var(--midnight-ink);
+      border-radius: 36px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 38px;
+      padding: 10px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      z-index: 100;
+      background: var(--midnight-ink);
+    }
+    .status-icons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* Viewport */
+    .app-viewport {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      scrollbar-width: none;
+    }
+    .app-viewport::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Top Header */
+    .app-header {
+      padding: 14px 18px 10px;
+      background: var(--midnight-ink);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon-box {
+      width: 26px;
+      height: 26px;
+      color: var(--soft-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
+
+    /* Filter Chips */
+    .chips-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 6px 16px 14px;
+      scrollbar-width: none;
+    }
+    .chips-row::-webkit-scrollbar {
+      display: none;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      border: 1px solid var(--midnight-outline);
+      background: var(--midnight-surface);
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+    .chip.active {
+      background: var(--soft-gold);
+      color: #14171F;
+      border-color: var(--soft-gold);
+      font-weight: 700;
+    }
+
+    /* Luma-Style Event Cards */
+    .feed-container {
+      padding: 0 16px 90px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card-event {
+      background: var(--midnight-card);
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(46, 55, 74, 0.7);
+    }
+    .card-event-cover {
+      position: relative;
+      width: 100%;
+      height: 150px;
+    }
+    .card-event-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .category-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(20, 23, 31, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 4px 9px;
+      border-radius: 8px;
+      color: var(--soft-gold);
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid rgba(226, 185, 106, 0.3);
+    }
+
+    /* Luma Date Rail Row */
+    .card-luma-body {
+      padding: 14px 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .date-rail-box {
+      width: 46px;
+      background: var(--midnight-surface);
+      border-radius: 12px;
+      padding: 6px 0;
+      text-align: center;
+      flex-shrink: 0;
+      border: 1px solid var(--midnight-outline);
+    }
+    .date-month {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--soft-gold);
+      letter-spacing: 0.5px;
+    }
+    .date-day {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.1;
+      color: #fff;
+    }
+    .date-weekday {
+      font-size: 9px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .event-details {
+      flex: 1;
+    }
+    .event-host {
+      font-size: 12px;
+      color: var(--sage-accent);
+      font-weight: 600;
+      margin-bottom: 2px;
+      cursor: pointer;
+    }
+    .event-title {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .event-time-venue {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .event-attendance {
+      font-size: 11px;
+      color: var(--soft-gold);
+      font-weight: 600;
+    }
+
+    /* Actions Bar */
+    .card-actions-bar {
+      padding: 10px 16px;
+      border-top: 1px solid rgba(46, 55, 74, 0.6);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-share {
+      background: transparent;
+      border: 1px solid var(--midnight-outline);
+      color: var(--text-primary);
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+    .btn-share svg {
+      width: 13px;
+      height: 13px;
+      color: var(--soft-gold);
+    }
+    .btn-rsvp {
+      background: var(--soft-gold);
+      color: #14171F;
+      border: none;
+      padding: 6px 18px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .btn-rsvp.attending {
+      background: var(--sage-container);
+      color: var(--sage-accent);
+      border: 1px solid var(--sage-accent);
+    }
+    .btn-guest-prompt {
+      background: transparent;
+      border: 1px solid var(--midnight-outline);
+      color: var(--text-secondary);
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-follow-subtle {
+      background: transparent;
+      border: 1px solid var(--soft-gold);
+      color: var(--soft-gold);
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-follow-subtle.following {
+      border-color: var(--sage-accent);
+      color: var(--sage-accent);
+    }
+
+    /* 3-Column Timetable */
+    .timetable-card {
+      background: var(--midnight-surface);
+      border: 1px solid var(--midnight-outline);
+      border-radius: 18px;
+      margin: 12px 16px;
+      padding: 16px;
+    }
+    .table-col-header {
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--midnight-outline);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-secondary);
+    }
+    .table-data-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 4px;
+      font-size: 13px;
+    }
+    .table-data-row.next-active {
+      background: var(--midnight-elevated);
+      border-radius: 8px;
+      padding: 10px 8px;
+      color: var(--soft-gold);
+      font-weight: 700;
+    }
+    .col-prayer { flex: 1.2; font-weight: 600; }
+    .col-adhan { flex: 1; color: var(--text-secondary); }
+    .col-iqamah { flex: 1; text-align: right; font-weight: 700; }
+    .next-tag {
+      background: var(--soft-gold);
+      color: #14171F;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 4px;
+      border-radius: 4px;
+      margin-left: 4px;
+    }
+
+    /* Amenities Row */
+    .amenity-card {
+      background: var(--midnight-surface);
+      border: 1px solid var(--midnight-outline);
+      border-radius: 16px;
+      padding: 14px;
+      margin: 0 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .amenity-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .amenity-icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--soft-gold-container);
+      color: var(--soft-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Bottom Bar */
+    .bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: var(--midnight-surface);
+      border-top: 1px solid var(--midnight-outline);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 10px;
+      z-index: 100;
+    }
+    .bar-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-secondary);
+      background: none;
+      border: none;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 12px;
+    }
+    .bar-tab svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+    }
+    .bar-tab.active {
+      color: var(--soft-gold);
+    }
+
+    .screen {
+      display: none;
+    }
+    .screen.active {
+      display: block;
+    }
+
+    .btn-gold-pill {
+      width: 100%;
+      height: 44px;
+      background: var(--soft-gold);
+      color: #14171F;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      border-radius: 22px;
+      cursor: pointer;
+    }
+
+    /* Switch */
+    .switch-gold {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .switch-gold input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider-round {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: var(--midnight-elevated);
+      transition: .3s;
+      border-radius: 24px;
+    }
+    .slider-round:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text-secondary);
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider-round {
+      background-color: var(--soft-gold);
+    }
+    input:checked + .slider-round:before {
+      transform: translateX(20px);
+      background-color: #14171F;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 200;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-card {
+      background: var(--midnight-card);
+      border: 1px solid var(--soft-gold);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      width: 100%;
+      max-width: 330px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PHONE CONTAINER -->
+  <div class="device-wrapper">
+    <div class="device-screen">
+      
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span id="current-clock">9:41</span>
+        <div class="status-icons">
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 18.25c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l.64-.64C7.93 20.26 9.88 21 12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"/></svg>
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M16 4h-2V2h-4v2H8c-.55 0-1 .45-1 1v16c0 .55.45 1 1 1h8c.55 0 1-.45 1-1V5c0-.55-.45-1-1-1z"/></svg>
+        </div>
+      </div>
+
+      <!-- MAIN VIEWPORT -->
+      <div class="app-viewport">
+        
+        <!-- ==============================================
+             TAB 1: DISCOVER (LUMA EVENT CALENDAR)
+             ============================================== -->
+        <div id="screen-discover" class="screen active">
+          <div class="app-header">
+            <div class="brand-group">
+              <div class="brand-icon-box">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 0c-4 0-7 3.5-7 8v6h14v-6c0-4.5-3-8-7-8z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-4a3 3 0 016 0v4"/></svg>
+              </div>
+              <span class="brand-title">Muslim Link</span>
+            </div>
+            <button class="chip" style="padding: 4px 10px; font-size: 11px;" onclick="showScreen('profile')">
+              <span id="header-user-status">Member</span>
+            </button>
+          </div>
+
+          <!-- Filter Chips -->
+          <div class="chips-row">
+            <button class="chip active" onclick="setFilter('Tonight', this)">Tonight</button>
+            <button class="chip" onclick="setFilter('This week', this)">This week</button>
+            <button class="chip" onclick="setFilter('Lectures', this)">Lectures</button>
+            <button class="chip" onclick="setFilter('Community iftar', this)">Community iftar</button>
+          </div>
+
+          <div class="feed-container" id="discover-feed"></div>
+        </div>
+
+        <!-- ==============================================
+             TAB 2: COMMUNITIES (MOSQUES DIRECTORY)
+             ============================================== -->
+        <div id="screen-communities" class="screen">
+          <div class="app-header">
+            <div class="brand-group">
+              <span class="brand-title">Communities (Mosques)</span>
+            </div>
+          </div>
+          <div style="padding: 0 16px 90px;" id="communities-list"></div>
+        </div>
+
+        <!-- ==============================================
+             TAB 3: SPEAKERS & SCHOLARS DIRECTORY
+             ============================================== -->
+        <div id="screen-speakers" class="screen">
+          <div class="app-header">
+            <div class="brand-group">
+              <span class="brand-title">Scholars & Speakers</span>
+            </div>
+          </div>
+          <div style="padding: 10px 16px 4px;">
+            <input type="text" id="speaker-search-input" placeholder="Search scholar, topic, or field..." oninput="renderSpeakers()" style="width: 100%; height: 38px; border-radius: 12px; background: var(--midnight-surface); border: 1px solid var(--midnight-outline); color: #fff; padding: 0 14px; font-size: 13px; outline: none; margin-bottom: 8px;">
+            <div class="chips-row" style="padding: 0 0 6px;">
+              <button class="chip active" id="topic-All" onclick="selectSpeakerTopic('All')">All</button>
+              <button class="chip" id="topic-Tafseer" onclick="selectSpeakerTopic('Tafseer')">Tafseer</button>
+              <button class="chip" id="topic-Youth" onclick="selectSpeakerTopic('Youth')">Youth</button>
+              <button class="chip" id="topic-Family" onclick="selectSpeakerTopic('Family')">Family</button>
+              <button class="chip" id="topic-Ethics" onclick="selectSpeakerTopic('Ethics')">Ethics</button>
+            </div>
+          </div>
+          <div style="padding: 0 16px 90px;" id="speakers-list"></div>
+        </div>
+
+        <!-- ==============================================
+             TAB 4: MY SCHEDULE (ORGANIZED LECTURES & NOTIFICATIONS)
+             ============================================== -->
+        <div id="screen-schedule" class="screen">
+          <div class="app-header">
+            <div class="brand-group">
+              <span class="brand-title">My Schedule</span>
+            </div>
+          </div>
+          <div style="padding: 0 16px 90px;" id="schedule-feed"></div>
+        </div>
+
+        <!-- ==============================================
+             TAB 4: PROFILE & SETTINGS (ACCOUNT, QIBLA, ADMIN)
+             ============================================== -->
+        <div id="screen-profile" class="screen">
+          <div class="app-header">
+            <div class="brand-group"><span class="brand-title">Profile & Settings</span></div>
+            <button class="chip" style="padding: 4px 10px; font-size: 11px;" onclick="cycleRoleDemo()">
+              <span id="role-pill-label">Role: Member (Click to Switch)</span>
+            </button>
+          </div>
+          <div style="padding: 0 16px 90px;" id="profile-container"></div>
+        </div>
+
+        <!-- ==============================================
+             SUB-SCREEN: MOSQUE PROFILE (NO DUPLICATE EVENTS)
+             ============================================== -->
+        <div id="screen-mosque-detail" class="screen">
+          <div class="app-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <button style="background: none; border: none; color: #fff; cursor: pointer;" onclick="showScreen('communities')">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <span id="detail-header-name" style="font-size: 17px; font-weight: 700;">Masjid Al-Noor</span>
+            </div>
+          </div>
+
+          <div style="padding: 0 16px 12px;">
+            <img src="https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=1200&q=80" style="width: 100%; height: 180px; border-radius: 18px; object-fit: cover;">
+          </div>
+
+          <div style="padding: 0 16px 14px;">
+            <h2 id="detail-title" style="font-size: 20px; font-weight: 800; margin-bottom: 3px;">Masjid Al-Noor</h2>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+              742 Evergreen Terrace • 1.2 km away • 1,240 followers
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <button class="btn-follow-subtle following" id="detail-follow-btn" style="flex: 1; height: 38px; justify-content: center;" onclick="handleFollowFromDetail()">
+                <span>✓ Following</span>
+              </button>
+              <button class="btn-share" style="flex: 1; height: 38px; font-size: 13px; justify-content: center;" onclick="navigator.clipboard?.writeText(window.location.href); alert('Mosque link copied to clipboard!')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                Share Mosque
+              </button>
+            </div>
+          </div>
+
+          <!-- Official 3-Column Timetable: PRAYER | ADHAN | IQAMAH -->
+          <div class="timetable-card">
+            <div class="table-col-header">
+              <span class="col-prayer">PRAYER</span>
+              <span class="col-adhan">ADHAN</span>
+              <span class="col-iqamah">IQAMAH</span>
+            </div>
+            <div class="table-data-row"><span class="col-prayer">Fajr</span><span class="col-adhan">5:15 AM</span><span class="col-iqamah">5:45 AM</span></div>
+            <div class="table-data-row"><span class="col-prayer">Dhuhr</span><span class="col-adhan">1:05 PM</span><span class="col-iqamah">1:30 PM</span></div>
+            <div class="table-data-row next-active"><span class="col-prayer">Asr <span class="next-tag">NEXT</span></span><span class="col-adhan">4:45 PM</span><span class="col-iqamah">5:00 PM</span></div>
+            <div class="table-data-row"><span class="col-prayer">Maghrib</span><span class="col-adhan">7:48 PM</span><span class="col-iqamah">7:55 PM</span></div>
+            <div class="table-data-row"><span class="col-prayer">Isha</span><span class="col-adhan">9:15 PM</span><span class="col-iqamah">9:30 PM</span></div>
+            
+            <div style="background: var(--midnight-ink); border-radius: 12px; padding: 10px 12px; margin-top: 12px; font-size: 12px;">
+              <div style="font-size: 11px; font-weight: 800; color: var(--soft-gold); margin-bottom: 4px;">JUMU'AH (FRIDAY) PRAYERS</div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                <span>1st Shift: Khutbah 1:15 PM</span>
+                <span style="font-weight: 700; color: var(--sage-accent);">Salah 1:45 PM</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>2nd Shift: Khutbah 2:15 PM</span>
+                <span style="font-weight: 700; color: var(--sage-accent);">Salah 2:45 PM</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Amenities (No duplicate events) -->
+          <div style="padding: 0 16px 6px; font-size: 15px; font-weight: 700;">Mosque Amenities & Facilities</div>
+          <div class="amenity-card">
+            <div class="amenity-item">
+              <div class="amenity-icon-box"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+              <div><div style="font-size: 13px; font-weight: 700;">Dedicated Sisters' Prayer Hall</div><div style="font-size: 11px; color: var(--text-secondary);">Private entrance & mother's room</div></div>
+            </div>
+            <div class="amenity-item">
+              <div class="amenity-icon-box"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2c-5.33 4-8 8.67-8 12a8 8 0 0016 0c0-3.33-2.67-8-8-12z"/></svg></div>
+              <div><div style="font-size: 13px; font-weight: 700;">Modern Wudu Facilities</div><div style="font-size: 11px; color: var(--text-secondary);">Hot & cold stations on both levels</div></div>
+            </div>
+            <div class="amenity-item">
+              <div class="amenity-icon-box"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+              <div><div style="font-size: 13px; font-weight: 700;">Free Community Parking</div><div style="font-size: 11px; color: var(--text-secondary);">150+ stalls with overflow on Fridays</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 4 CANONICAL BOTTOM TABS -->
+      <div class="bottom-bar">
+        <button class="bar-tab active" id="tab-discover" onclick="showScreen('discover')">
+          <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          <span>Discover</span>
+        </button>
+
+        <button class="bar-tab" id="tab-communities" onclick="showScreen('communities')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          <span>Mosques</span>
+        </button>
+
+        <button class="bar-tab" id="tab-speakers" onclick="showScreen('speakers')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+          <span>Speakers</span>
+        </button>
+
+        <button class="bar-tab" id="tab-schedule" onclick="showScreen('schedule')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+          <span>My Schedule</span>
+        </button>
+
+        <button class="bar-tab" id="tab-profile" onclick="showScreen('profile')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Profile</span>
+        </button>
+      </div>
+
+      <!-- SOCIAL SHARE DIALOG MODAL -->
+      <div class="modal-overlay" id="share-modal">
+        <div class="modal-card">
+          <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 4px;">Share Event Invitation</h3>
+          <p id="share-modal-title" style="font-size: 13px; color: var(--soft-gold); margin-bottom: 14px;"></p>
+          
+          <div style="background: var(--midnight-ink); border: 1px solid var(--midnight-outline); border-radius: 10px; padding: 10px; font-family: monospace; font-size: 11px; color: var(--text-secondary); margin-bottom: 14px; word-break: break-all;" id="share-link-text">
+            https://muslimlink.app/e/evt_1
+          </div>
+
+          <button class="btn-gold-pill" style="margin-bottom: 8px;" onclick="executeWhatsAppShare()">
+            Share via WhatsApp
+          </button>
+          <button class="chip" style="width: 100%; justify-content: center; padding: 10px;" onclick="copyShareLink()">
+            Copy Link to Clipboard
+          </button>
+          <button style="background: none; border: none; color: var(--text-secondary); font-size: 12px; margin-top: 10px; cursor: pointer;" onclick="closeShareModal()">Close</button>
+        </div>
+      </div>
+
+      <!-- POST-RSVP DELIGHT OVERLAY -->
+      <div class="modal-overlay" id="rsvp-confirm-modal">
+        <div class="modal-card">
+          <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--sage-container); color: var(--sage-accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+            <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+          </div>
+          <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 4px;">You're Attending!</h3>
+          <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 16px;">
+            Saved to <b>My Schedule</b>. Invite your friends or family to join you:
+          </p>
+
+          <button class="btn-gold-pill" style="margin-bottom: 8px;" onclick="executeWhatsAppShare()">
+            Invite Friends via WhatsApp
+          </button>
+          <button style="background: none; border: none; color: var(--text-secondary); font-size: 12px; cursor: pointer;" onclick="closeRsvpConfirmModal()">Done</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="preview-info">
+    <span>Luma Concept 1 with Social Sharing:</span> <b>Date Badges</b> (NOV 19), <b>Native Social Sharing</b> (WhatsApp/Copy Link), and strict <b>Profile Gating</b> for RSVP & Following.
+  </div>
+
+  <script>
+    function updateClock() {
+      const now = new Date();
+      let h = now.getHours();
+      let m = now.getMinutes();
+      m = m < 10 ? '0' + m : m;
+      document.getElementById('current-clock').textContent = `${h}:${m}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    let userRole = 'member'; // 'guest', 'member', 'admin'
+    let currentFilter = 'Tonight';
+    let activeShareEvent = null;
+
+    const events = [
+      {
+        id: "ev1",
+        mosqueId: "m1",
+        mosque: "Masjid Al-Noor",
+        title: "Finding Peace in Trials & Tribulations",
+        dateMonth: "NOV",
+        dateDay: "19",
+        dayOfWeek: "FRI",
+        time: "8:00 PM - 9:30 PM",
+        venue: "Main Prayer Hall",
+        image: "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=1200&q=80",
+        category: "Lectures",
+        isFollowed: true,
+        isRsvp: true,
+        attendees: 48,
+        reminder: true
+      },
+      {
+        id: "ev2",
+        mosqueId: "m2",
+        mosque: "Islamic Center",
+        title: "Youth Halaqa Night & Open Discussion",
+        dateMonth: "NOV",
+        dateDay: "20",
+        dayOfWeek: "SAT",
+        time: "7:30 PM - 9:00 PM",
+        venue: "Youth Multi-Purpose Room",
+        image: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=1200&q=80",
+        category: "Lectures",
+        isFollowed: false,
+        isRsvp: false,
+        attendees: 64,
+        reminder: false
+      },
+      {
+        id: "ev3",
+        mosqueId: "m1",
+        mosque: "Masjid Al-Noor",
+        title: "Annual Community Grand Iftar & Gathering",
+        dateMonth: "NOV",
+        dateDay: "22",
+        dayOfWeek: "MON",
+        time: "6:30 PM - 8:45 PM",
+        venue: "Main Banquet Hall & Patio",
+        image: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=1200&q=80",
+        category: "Community iftar",
+        isFollowed: true,
+        isRsvp: false,
+        attendees: 120,
+        reminder: false
+      }
+    ];
+
+    const mosques = [
+      { id: "m1", name: "Masjid Al-Noor", distText: "1.2 km away", followers: "1,240 followers", asr: "5:00 PM", img: "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=400&q=80", isFollowed: true },
+      { id: "m2", name: "Islamic Center", distText: "2.8 km away", followers: "890 followers", asr: "5:05 PM", img: "https://images.unsplash.com/photo-1564769625905-50e93615e769?auto=format&fit=crop&w=400&q=80", isFollowed: false },
+      { id: "m3", name: "Baitul Mukarram", distText: "4.5 km away", followers: "2,150 followers", asr: "5:00 PM", img: "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=400&q=80", isFollowed: true }
+    ];
+
+    const speakers = [
+      { id: "s1", name: "Dr. Tariq Rahman", title: "Islamic Scholar & Author", followers: 1420, topics: ["Tafseer", "Spiritual Growth", "Ethics"], img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80", isFollowed: true },
+      { id: "s2", name: "Sheikh Bilal Philips", title: "Dean & Islamic Educator", followers: 3850, topics: ["Aqeedah", "Youth", "Ethics"], img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80", isFollowed: false },
+      { id: "s3", name: "Ustadha Fatima Barkatullah", title: "Scholar & Podcaster", followers: 2190, topics: ["Family", "Sisters Circle", "Quran"], img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80", isFollowed: true },
+      { id: "s4", name: "Imam Omar Suleiman", title: "President of Yaqeen Institute", followers: 6500, topics: ["Seerah", "Ethics", "Spiritual Awakening"], img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80", isFollowed: false }
+    ];
+    let currentSpeakerTopic = 'All';
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.bar-tab').forEach(t => t.classList.remove('active'));
+
+      const target = document.getElementById(`screen-${screenId}`);
+      if (target) target.classList.add('active');
+
+      const tab = document.getElementById(`tab-${screenId}`);
+      if (tab) tab.classList.add('active');
+
+      if (screenId === 'discover') renderDiscoverFeed();
+      if (screenId === 'communities') renderCommunities();
+      if (screenId === 'speakers') renderSpeakers();
+      if (screenId === 'schedule') renderSchedule();
+      if (screenId === 'profile') renderProfileView();
+
+      document.querySelector('.app-viewport').scrollTop = 0;
+    }
+
+    function selectSpeakerTopic(topic) {
+      currentSpeakerTopic = topic;
+      document.querySelectorAll('#screen-speakers .chip').forEach(c => c.classList.remove('active'));
+      const activeBtn = document.getElementById(`topic-${topic}`);
+      if (activeBtn) activeBtn.classList.add('active');
+      renderSpeakers();
+    }
+
+    function toggleFollowSpeakerWeb(speakerId) {
+      const spk = speakers.find(s => s.id === speakerId);
+      if (spk) {
+        spk.isFollowed = !spk.isFollowed;
+        spk.followers += spk.isFollowed ? 1 : -1;
+        renderSpeakers();
+      }
+    }
+
+    function renderSpeakers() {
+      const container = document.getElementById('speakers-list');
+      if (!container) return;
+      const searchVal = (document.getElementById('speaker-search-input')?.value || '').toLowerCase();
+
+      let filtered = speakers.filter(s => {
+        const matchesSearch = s.name.toLowerCase().includes(searchVal) || s.title.toLowerCase().includes(searchVal) || s.topics.some(t => t.toLowerCase().includes(searchVal));
+        const matchesTopic = currentSpeakerTopic === 'All' || s.topics.some(t => t.toLowerCase() === currentSpeakerTopic.toLowerCase());
+        return matchesSearch && matchesTopic;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 40px 16px; color: var(--text-secondary); font-size: 13px;">No scholars found matching your criteria.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(spk => `
+        <div style="background: var(--midnight-surface); border: 1px solid var(--midnight-outline); border-radius: 18px; padding: 14px; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <img src="${spk.img}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--soft-gold);">
+              <div>
+                <div style="font-weight: 700; font-size: 14px; color: #fff;">${spk.name}</div>
+                <div style="font-size: 12px; color: var(--sage-accent);">${spk.title}</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${spk.followers} followers</div>
+              </div>
+            </div>
+            <button class="chip ${spk.isFollowed ? 'active' : ''}" style="padding: 6px 14px; font-size: 11px;" onclick="toggleFollowSpeakerWeb('${spk.id}')">
+              ${spk.isFollowed ? '✓ Following' : '+ Follow'}
+            </button>
+          </div>
+          <div style="display: flex; gap: 6px; margin-top: 10px;">
+            ${spk.topics.map(t => `<span style="background: var(--midnight-card); border: 1px solid var(--midnight-outline); border-radius: 6px; padding: 3px 8px; font-size: 10px; color: var(--text-secondary);">${t}</span>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // TAB 1: DISCOVER (LUMA CARDS)
+    function renderDiscoverFeed() {
+      const container = document.getElementById('discover-feed');
+      let filtered = events;
+      if (currentFilter !== 'All') {
+        filtered = events.filter(e => e.category.toLowerCase().includes(currentFilter.toLowerCase()) || currentFilter === 'Tonight');
+      }
+
+      container.innerHTML = filtered.map(ev => {
+        const isAttending = ev.isRsvp;
+        const totalAttendees = isAttending ? ev.attendees + 1 : ev.attendees;
+
+        return `
+          <div class="card-event">
+            <div class="card-event-cover">
+              <img src="${ev.image}">
+              <div class="category-badge">${ev.category}</div>
+            </div>
+
+            <!-- Luma Date Rail Row -->
+            <div class="card-luma-body">
+              <div class="date-rail-box">
+                <div class="date-month">${ev.dateMonth}</div>
+                <div class="date-day">${ev.dateDay}</div>
+                <div class="date-weekday">${ev.dayOfWeek}</div>
+              </div>
+
+              <div class="event-details">
+                <div class="event-host" onclick="openMosqueProfile('${ev.mosque}')">${ev.mosque}</div>
+                <div class="event-title">${ev.title}</div>
+                <div class="event-time-venue">${ev.time} • ${ev.venue}</div>
+                <div class="event-attendance">${totalAttendees} attending</div>
+              </div>
+            </div>
+
+            <!-- Actions Bar: Social Share + Gated RSVP + Gated Follow -->
+            <div class="card-actions-bar">
+              <button class="btn-share" onclick="openShareModal('${ev.id}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                <span>Share</span>
+              </button>
+
+              <div style="display: flex; gap: 8px;">
+                ${userRole === 'guest' ? `
+                  <button class="btn-guest-prompt" onclick="promptGuestLogin()">Sign in to RSVP</button>
+                ` : `
+                  <button class="btn-rsvp ${isAttending ? 'attending' : ''}" onclick="toggleRsvp('${ev.id}')">
+                    ${isAttending ? '✓ Attending' : 'RSVP'}
+                  </button>
+                  ${ev.isFollowed ? `
+                    <button class="btn-follow-subtle following" onclick="toggleFollow('${ev.id}')">Following</button>
+                  ` : `
+                    <button class="btn-follow-subtle" onclick="toggleFollow('${ev.id}')">+ Follow</button>
+                  `}
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleRsvp(id) {
+      const ev = events.find(e => e.id === id);
+      if (ev) {
+        ev.isRsvp = !ev.isRsvp;
+        renderDiscoverFeed();
+        if (ev.isRsvp) {
+          activeShareEvent = ev;
+          document.getElementById('rsvp-confirm-modal').classList.add('active');
+        }
+      }
+    }
+
+    function toggleFollow(id) {
+      const ev = events.find(e => e.id === id);
+      if (ev) {
+        ev.isFollowed = !ev.isFollowed;
+        renderDiscoverFeed();
+      }
+    }
+
+    function promptGuestLogin() {
+      alert("Please sign in or create an account to RSVP to lectures and follow mosques.");
+      showScreen('profile');
+    }
+
+    function setFilter(filter, el) {
+      currentFilter = filter;
+      document.querySelectorAll('.chips-row .chip').forEach(c => c.classList.remove('active'));
+      if (el) el.classList.add('active');
+      renderDiscoverFeed();
+    }
+
+    // SOCIAL SHARING LOGIC
+    function openShareModal(id) {
+      const ev = events.find(e => e.id === id);
+      if (!ev) return;
+      activeShareEvent = ev;
+      document.getElementById('share-modal-title').textContent = ev.title;
+      document.getElementById('share-link-text').textContent = `https://muslimlink.app/event/${ev.id}`;
+      document.getElementById('share-modal').classList.add('active');
+    }
+
+    function closeShareModal() {
+      document.getElementById('share-modal').classList.remove('active');
+    }
+
+    function closeRsvpConfirmModal() {
+      document.getElementById('rsvp-confirm-modal').classList.remove('active');
+    }
+
+    function executeWhatsAppShare() {
+      if (!activeShareEvent) return;
+      const text = encodeURIComponent(`Join me for "${activeShareEvent.title}" at ${activeShareEvent.mosque} (${activeShareEvent.time})! RSVP & details: https://muslimlink.app/event/${activeShareEvent.id}`);
+      window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+      closeShareModal();
+      closeRsvpConfirmModal();
+    }
+
+    function copyShareLink() {
+      if (!activeShareEvent) return;
+      const url = `https://muslimlink.app/event/${activeShareEvent.id}`;
+      navigator.clipboard.writeText(url).then(() => {
+        alert("Invitation link copied to clipboard: " + url);
+        closeShareModal();
+      }).catch(() => {
+        alert("Link: " + url);
+      });
+    }
+
+    // TAB 2: COMMUNITIES
+    function renderCommunities() {
+      const container = document.getElementById('communities-list');
+      container.innerHTML = mosques.map(m => `
+        <div style="background: var(--midnight-surface); border: 1px solid var(--midnight-outline); border-radius: 16px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick="openMosqueProfile('${m.name}')">
+          <img src="${m.img}" style="width: 52px; height: 52px; border-radius: 12px; object-fit: cover;">
+          <div style="flex: 1;">
+            <div style="font-size: 15px; font-weight: 700;">${m.name}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">${m.distText} • Next Asr ${m.asr}</div>
+            <div style="font-size: 11px; color: var(--soft-gold); font-weight: 600;">${m.followers}</div>
+          </div>
+          ${userRole === 'guest' ? '' : `
+            <button class="btn-follow-subtle ${m.isFollowed ? 'following' : ''}" onclick="event.stopPropagation(); m.isFollowed = !m.isFollowed; renderCommunities();">
+              ${m.isFollowed ? 'Following' : '+ Follow'}
+            </button>
+          `}
+        </div>
+      `).join('');
+    }
+
+    // TAB 3: MY SCHEDULE
+    function renderSchedule() {
+      const container = document.getElementById('schedule-feed');
+      if (userRole === 'guest') {
+        container.innerHTML = `
+          <div style="padding: 40px 16px; text-align: center;">
+            <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 6px;">Schedule Locked</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px;">
+              Sign in to organize your personal lecture calendar, manage RSVPs, and enable notifications.
+            </p>
+            <button class="btn-gold-pill" onclick="showScreen('profile')">Sign In to View Schedule</button>
+          </div>
+        `;
+        return;
+      }
+
+      const rsvpEvents = events.filter(e => e.isRsvp);
+      if (rsvpEvents.length === 0) {
+        container.innerHTML = `
+          <div style="padding: 40px 16px; text-align: center;">
+            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 14px;">No lectures added to your schedule yet.</p>
+            <button class="btn-gold-pill" onclick="showScreen('discover')">Explore Discover Feed</button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = rsvpEvents.map(e => `
+        <div style="background: var(--midnight-surface); border: 1px solid var(--midnight-outline); border-radius: 16px; padding: 14px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+            <span style="font-size: 12px; color: var(--sage-accent); font-weight: 600;">${e.mosque}</span>
+            <button style="background: none; border: none; color: var(--soft-gold); font-size: 12px; cursor: pointer;" onclick="openShareModal('${e.id}')">↗ Share</button>
+          </div>
+          <div style="font-size: 15px; font-weight: 700; margin-bottom: 4px;">${e.title}</div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">${e.dateMonth} ${e.dateDay} (${e.dayOfWeek}) • ${e.time}</div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; background: var(--midnight-card); padding: 8px 12px; border-radius: 10px;">
+            <span style="font-size: 12px; font-weight: 600;">Reminder Notification</span>
+            <label class="switch-gold">
+              <input type="checkbox" ${e.reminder ? 'checked' : ''} onchange="e.reminder = !e.reminder;">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // TAB 4: PROFILE
+    function renderProfileView() {
+      const container = document.getElementById('profile-container');
+      const badge = document.getElementById('role-pill-label');
+      document.getElementById('header-user-status').textContent = userRole === 'admin' ? 'Admin' : (userRole === 'member' ? 'Member' : 'Guest');
+
+      if (userRole === 'guest') {
+        badge.textContent = 'Role: Guest (Click to Switch)';
+        container.innerHTML = `
+          <div style="background: var(--midnight-surface); border: 1px solid var(--midnight-outline); border-radius: 18px; padding: 20px; text-align: center; margin-top: 10px;">
+            <h3 style="font-size: 17px; font-weight: 800; margin-bottom: 6px;">Sign in to Muslim Link</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">RSVP to lectures, follow mosques, and manage reminders.</p>
+            <button class="btn-gold-pill" style="margin-bottom: 10px;" onclick="setRoleDirect('member')">Sign In as Community Member</button>
+            <button class="chip" style="width: 100%; justify-content: center; padding: 12px;" onclick="setRoleDirect('admin')">Mosque Admin Sign In (Demo)</button>
+          </div>
+        `;
+      } else if (userRole === 'member') {
+        badge.textContent = 'Role: Member (Click to Switch)';
+        const followedMosques = mosques.filter(m => m.isFollowed);
+        container.innerHTML = `
+          <div style="background: var(--midnight-surface); border: 1px solid var(--midnight-outline); border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--sage-container); color: var(--sage-accent); display: flex; align-items: center; justify-content: center; font-weight: 800;">BS</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; font-size: 16px;">Bilal Siddiqui</div>
+              <div style="font-size: 12px; color: var(--sage-accent);">Community Member Profile</div>
+            </div>
+          </div>
+          <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px;">My Followed Mosques (${followedMosques.length})</div>
+          <div style="margin-bottom: 16px;">
+            ${followedMosques.map(m => `
+              <div style="background: var(--midnight-surface); border: 1px solid var(--midnight-outline); border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; display: flex; justify-content: space-between;">
+                <span>${m.name}</span>
+                <span style="color: var(--sage-accent); font-weight: 600; font-size: 11px;">✓ Following</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        badge.textContent = 'Role: Admin (Click to Switch)';
+        container.innerHTML = `
+          <div style="background: var(--midnight-surface); border: 1px solid var(--soft-gold); border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--soft-gold-container); color: var(--soft-gold); display: flex; align-items: center; justify-content: center; font-weight: 800;">IM</div>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; font-size: 16px;">Imam Tariq</div>
+              <div style="font-size: 12px; color: var(--soft-gold);">Admin of Masjid Al-Noor</div>
+            </div>
+          </div>
+          <button class="btn-gold-pill" onclick="alert('Post Event Sheet Opened')">+ Post an Event for Masjid Al-Noor</button>
+        `;
+      }
+    }
+
+    function cycleRoleDemo() {
+      userRole = userRole === 'guest' ? 'member' : (userRole === 'member' ? 'admin' : 'guest');
+      renderProfileView();
+      renderDiscoverFeed();
+    }
+    function setRoleDirect(r) {
+      userRole = r;
+      renderProfileView();
+      renderDiscoverFeed();
+    }
+
+    function openMosqueProfile(name) {
+      document.getElementById('detail-header-name').textContent = name;
+      document.getElementById('detail-title').textContent = name;
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-mosque-detail').classList.add('active');
+    }
+
+    function handleFollowFromDetail() {
+      if (userRole === 'guest') {
+        promptGuestLogin();
+        return;
+      }
+      const btn = document.getElementById('detail-follow-btn');
+      const isF = btn.classList.contains('following');
+      if (isF) {
+        btn.classList.remove('following');
+        btn.innerHTML = '<span>+ Follow</span>';
+      } else {
+        btn.classList.add('following');
+        btn.innerHTML = '<span>✓ Following</span>';
+      }
+    }
+
+    renderDiscoverFeed();
+  </script>
+</body>
+</html>

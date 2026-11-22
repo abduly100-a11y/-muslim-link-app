@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Core Brand Palette -->
+    <color name="midnight_ink">#14171F</color>
+    <color name="midnight_surface">#1B202B</color>
+    <color name="midnight_surface_variant">#242B3A</color>
+    <color name="soft_gold">#E2B96A</color>
+    <color name="soft_gold_light">#F5D699</color>
+    <color name="soft_gold_dark">#B38D40</color>
+    <color name="sage_accent">#8CA38D</color>
+    <color name="sage_light">#B8CAB9</color>
+    <color name="white_warm">#F7F8FA</color>
+    <color name="text_secondary">#9DA8B9</color>
+</resources>
