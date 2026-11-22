@@ -343,6 +343,8 @@ fun UserProfileScreen(
                                             selectedLabelColor = MidnightInk
                                         ),
                                         border = FilterChipDefaults.filterChipBorder(
+                                            enabled = true,
+                                            selected = isFollowed,
                                             borderColor = MidnightOutline,
                                             selectedBorderColor = SoftGold,
                                             borderWidth = 1.dp

@@ -198,6 +198,8 @@ fun SpeakerDirectoryScreen(
                             selectedLabelColor = MidnightInk
                         ),
                         border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
                             borderColor = MidnightOutline,
                             selectedBorderColor = SoftGold,
                             borderWidth = 1.dp
