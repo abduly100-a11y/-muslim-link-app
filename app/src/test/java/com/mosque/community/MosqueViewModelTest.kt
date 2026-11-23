@@ -141,4 +141,14 @@ class MosqueViewModelTest {
         viewModel.updateCompassHeading(180f)
         assertFalse(viewModel.qiblaInfo.value.isAligned)
     }
+
+    @Test
+    fun testSyncWithBackend() {
+        // Calling syncWithBackend shouldn't crash and should complete
+        viewModel.syncWithBackend()
+        // Ensure state remains valid
+        assertTrue(viewModel.mosques.value.isNotEmpty())
+        assertTrue(viewModel.events.value.isNotEmpty())
+        assertTrue(viewModel.speakers.value.isNotEmpty())
+    }
 }

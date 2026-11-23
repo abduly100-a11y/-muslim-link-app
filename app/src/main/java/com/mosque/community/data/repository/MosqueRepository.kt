@@ -1,5 +1,9 @@
 package com.mosque.community.data.repository
 
+import com.mosque.community.data.local.MosqueDatabase
+import com.mosque.community.data.local.entity.EventEntity
+import com.mosque.community.data.local.entity.MosqueEntity
+import com.mosque.community.data.local.entity.SpeakerEntity
 import com.mosque.community.data.models.Event
 import com.mosque.community.data.models.Mosque
 import com.mosque.community.data.models.PrayerTimes
@@ -7,13 +11,19 @@ import com.mosque.community.data.models.RsvpState
 import com.mosque.community.data.models.Speaker
 import com.mosque.community.data.models.User
 import com.mosque.community.data.models.UserRole
+import com.mosque.community.data.remote.SupabaseService
+import com.mosque.community.data.remote.dto.EventDto
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class MosqueRepository(
-    private val explicitContext: android.content.Context? = null
+    private val explicitContext: android.content.Context? = null,
+    private val supabaseService: SupabaseService = SupabaseService()
 ) {
     companion object {
         private var globalContext: android.content.Context? = null
@@ -36,6 +46,12 @@ class MosqueRepository(
 
     private val effectiveContext: android.content.Context?
         get() = explicitContext ?: globalContext
+
+    private val database: MosqueDatabase? by lazy {
+        effectiveContext?.let { MosqueDatabase.getDatabase(it) }
+    }
+
+    private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
     private val prefs: android.content.SharedPreferences?
         get() = effectiveContext?.getSharedPreferences("muslim_link_prefs", android.content.Context.MODE_PRIVATE)
@@ -314,6 +330,70 @@ class MosqueRepository(
     private val _events = MutableStateFlow(getInitialEvents())
     val events: StateFlow<List<Event>> = _events.asStateFlow()
 
+    init {
+        // Seed Room Database asynchronously if it's empty
+        effectiveContext?.let {
+            repositoryScope.launch {
+                try {
+                    val db = database ?: return@launch
+                    if (db.mosqueDao().getCount() == 0) {
+                        db.mosqueDao().insertAll(_mosques.value.map { MosqueEntity.fromMosque(it) })
+                    }
+                    if (db.speakerDao().getCount() == 0) {
+                        db.speakerDao().insertAll(_speakers.value.map { SpeakerEntity.fromSpeaker(it) })
+                    }
+                    if (db.eventDao().getCount() == 0) {
+                        db.eventDao().insertAll(_events.value.map { EventEntity.fromEvent(it) })
+                    }
+                } catch (e: Exception) {
+                    // Ignored in test environments or database failures
+                }
+            }
+        }
+    }
+
+    suspend fun syncWithSupabase() {
+        try {
+            // 1. Fetch remote data from Supabase
+            val remoteMosques = supabaseService.getMosques()
+            val remoteSpeakers = supabaseService.getSpeakers()
+            val remoteEvents = supabaseService.getEvents()
+
+            // 2. Update local Room database and StateFlows if remote has records
+            val db = database
+            if (remoteMosques.isNotEmpty()) {
+                val followedIds = _mosques.value.filter { it.isFollowed }.map { it.id }.toSet()
+                val entities = remoteMosques.map { it.toEntity(isFollowed = followedIds.contains(it.id)) }
+                db?.mosqueDao()?.insertAll(entities)
+                _mosques.value = entities.map { it.toMosque() }
+            }
+
+            if (remoteSpeakers.isNotEmpty()) {
+                val followedIds = _speakers.value.filter { it.isFollowed }.map { it.id }.toSet()
+                val entities = remoteSpeakers.map { it.toEntity(isFollowed = followedIds.contains(it.id)) }
+                db?.speakerDao()?.insertAll(entities)
+                _speakers.value = entities.map { it.toSpeaker() }
+            }
+
+            if (remoteEvents.isNotEmpty()) {
+                val currentEventsMap = _events.value.associateBy { it.id }
+                val entities = remoteEvents.map { dto ->
+                    val existing = currentEventsMap[dto.id]
+                    dto.toEntity(
+                        isBookmarked = existing?.isBookmarked ?: false,
+                        rsvpState = existing?.rsvpState?.name ?: "NOT_ATTENDING",
+                        reminderEnabled = existing?.reminderEnabled ?: false,
+                        isMosqueFollowed = existing?.isMosqueFollowed ?: false
+                    )
+                }
+                db?.eventDao()?.insertAll(entities)
+                _events.value = entities.map { it.toEvent() }
+            }
+        } catch (e: Exception) {
+            // Fail safely to retain offline cache
+        }
+    }
+
     private fun getInitialEvents(): List<Event> {
         val p = prefs ?: return initialEvents
         val savedRsvps = p.all.filterKeys { it.startsWith("rsvp_") }
@@ -412,7 +492,11 @@ class MosqueRepository(
         _mosques.update { list ->
             list.map { mosque ->
                 if (mosque.id == mosqueId) {
-                    mosque.copy(prayerTimes = newPrayerTimes)
+                    val updated = mosque.copy(prayerTimes = newPrayerTimes)
+                    repositoryScope.launch {
+                        database?.mosqueDao()?.update(MosqueEntity.fromMosque(updated))
+                    }
+                    updated
                 } else mosque
             }
         }
@@ -420,16 +504,20 @@ class MosqueRepository(
 
     fun toggleFollowMosque(mosqueId: String) {
         var newFollowState = false
+        var updatedMosque: Mosque? = null
+
         _mosques.update { list ->
             list.map { mosque ->
                 if (mosque.id == mosqueId) {
                     val nextFollowed = !mosque.isFollowed
                     newFollowState = nextFollowed
                     val countDelta = if (nextFollowed) 1 else -1
-                    mosque.copy(
+                    val modified = mosque.copy(
                         isFollowed = nextFollowed,
                         followerCount = (mosque.followerCount + countDelta).coerceAtLeast(0)
                     )
+                    updatedMosque = modified
+                    modified
                 } else mosque
             }
         }
@@ -443,22 +531,39 @@ class MosqueRepository(
             }
         }
 
+        repositoryScope.launch {
+            updatedMosque?.let {
+                database?.mosqueDao()?.updateFollowStatus(it.id, it.isFollowed, it.followerCount)
+                database?.eventDao()?.updateMosqueFollowStatus(it.id, it.isFollowed)
+            }
+        }
+
         prefs?.edit()?.putStringSet("followed_mosques", _mosques.value.filter { it.isFollowed }.map { it.id }.toSet())?.apply()
     }
 
     fun toggleFollowSpeaker(speakerId: String) {
+        var updatedSpeaker: Speaker? = null
         _speakers.update { list ->
             list.map { speaker ->
                 if (speaker.id == speakerId) {
                     val next = !speaker.isFollowed
                     val delta = if (next) 1 else -1
-                    speaker.copy(
+                    val modified = speaker.copy(
                         isFollowed = next,
                         followerCount = (speaker.followerCount + delta).coerceAtLeast(0)
                     )
+                    updatedSpeaker = modified
+                    modified
                 } else speaker
             }
         }
+
+        repositoryScope.launch {
+            updatedSpeaker?.let {
+                database?.speakerDao()?.updateFollowStatus(it.id, it.isFollowed, it.followerCount)
+            }
+        }
+
         prefs?.edit()?.putStringSet("followed_speakers", _speakers.value.filter { it.isFollowed }.map { it.id }.toSet())?.apply()
     }
 
@@ -470,6 +575,7 @@ class MosqueRepository(
     }
 
     fun setEventRsvp(eventId: String, state: RsvpState) {
+        var updatedEvent: Event? = null
         _events.update { list ->
             list.map { event ->
                 if (event.id == eventId) {
@@ -480,50 +586,120 @@ class MosqueRepository(
                         wasGoing && !isNowGoing -> -1
                         else -> 0
                     }
-                    event.copy(
+                    val modified = event.copy(
                         rsvpState = state,
                         isBookmarked = state == RsvpState.GOING || state == RsvpState.INTERESTED,
                         attendeeCount = (event.attendeeCount + delta).coerceAtLeast(0)
                     )
+                    updatedEvent = modified
+                    modified
                 } else event
             }
         }
+
+        repositoryScope.launch {
+            updatedEvent?.let {
+                database?.eventDao()?.updateRsvp(it.id, it.rsvpState.name, it.isBookmarked, it.attendeeCount)
+            }
+        }
+
         prefs?.edit()?.putString("rsvp_$eventId", state.name)?.apply()
     }
 
     fun toggleBookmark(eventId: String) {
         var nextState = RsvpState.NOT_ATTENDING
+        var updatedEvent: Event? = null
         _events.update { list ->
             list.map { event ->
                 if (event.id == eventId) {
                     val nextGoing = !event.isBookmarked
                     nextState = if (nextGoing) RsvpState.GOING else RsvpState.NOT_ATTENDING
                     val delta = if (nextGoing) 1 else -1
-                    event.copy(
+                    val modified = event.copy(
                         isBookmarked = nextGoing,
                         rsvpState = nextState,
                         attendeeCount = (event.attendeeCount + delta).coerceAtLeast(0)
                     )
+                    updatedEvent = modified
+                    modified
                 } else event
             }
         }
+
+        repositoryScope.launch {
+            updatedEvent?.let {
+                database?.eventDao()?.updateRsvp(it.id, it.rsvpState.name, it.isBookmarked, it.attendeeCount)
+            }
+        }
+
         prefs?.edit()?.putString("rsvp_$eventId", nextState.name)?.apply()
     }
 
     fun toggleReminder(eventId: String) {
         var nextRemind = false
+        var updatedEvent: Event? = null
         _events.update { list ->
             list.map { event ->
                 if (event.id == eventId) {
                     nextRemind = !event.reminderEnabled
-                    event.copy(reminderEnabled = nextRemind)
+                    val modified = event.copy(reminderEnabled = nextRemind)
+                    updatedEvent = modified
+                    modified
                 } else event
             }
         }
+
+        repositoryScope.launch {
+            updatedEvent?.let {
+                database?.eventDao()?.updateReminder(it.id, it.reminderEnabled)
+            }
+        }
+
         prefs?.edit()?.putBoolean("remind_$eventId", nextRemind)?.apply()
     }
 
     fun addEvent(event: Event) {
         _events.update { listOf(event) + it }
+        repositoryScope.launch {
+            database?.eventDao()?.insert(EventEntity.fromEvent(event))
+            // Also push to Supabase in background
+            try {
+                supabaseService.createEvent(
+                    EventDto(
+                        id = event.id,
+                        mosqueId = event.mosqueId,
+                        mosqueName = event.mosqueName,
+                        mosqueImageUrl = event.mosqueImageUrl,
+                        title = event.title,
+                        description = event.description,
+                        posterUrl = event.posterUrl,
+                        timestampEpochMillis = event.timestampEpochMillis,
+                        endTimestampEpochMillis = event.endTimestampEpochMillis,
+                        dateMonth = event.dateMonth,
+                        dateDay = event.dateDay,
+                        dayOfWeek = event.dayOfWeek,
+                        dateLabel = event.dateLabel,
+                        fullDate = event.fullDate,
+                        timeLabel = event.timeLabel,
+                        location = event.location,
+                        address = event.address,
+                        category = event.category,
+                        isTonight = event.isTonight,
+                        isThisWeek = event.isThisWeek,
+                        attendeeCount = event.attendeeCount,
+                        capacity = event.capacity,
+                        registrationRequired = event.registrationRequired,
+                        cost = event.cost,
+                        isOnline = event.isOnline,
+                        language = event.language,
+                        speakerIds = event.speakerIds,
+                        speakerNames = event.speakerNames,
+                        tags = event.tags
+                    )
+                )
+            } catch (e: Exception) {
+                // Ignore sync failures to allow offline creation
+            }
+        }
     }
 }

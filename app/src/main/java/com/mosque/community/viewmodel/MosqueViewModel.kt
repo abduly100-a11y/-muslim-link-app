@@ -20,17 +20,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 class MosqueViewModel(
     private val repository: MosqueRepository = MosqueRepository()
 ) : ViewModel() {
 
+    init {
+        syncWithBackend()
+    }
+
     private val _selectedFilter = MutableStateFlow(EventFilter.ALL)
     val selectedFilter: StateFlow<EventFilter> = _selectedFilter.asStateFlow()
 
     val mosques: StateFlow<List<Mosque>> = repository.mosques
     val speakers: StateFlow<List<Speaker>> = repository.speakers
+    val events: StateFlow<List<Event>> = repository.events
     val followedCategories: StateFlow<Set<String>> = repository.followedCategories
     val currentUser: StateFlow<User> = repository.currentUser
 
@@ -267,5 +273,19 @@ class MosqueViewModel(
         )
         repository.addEvent(newEvent)
         return true
+    }
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    fun syncWithBackend() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                repository.syncWithSupabase()
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
     }
 }
