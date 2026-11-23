@@ -22,14 +22,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MosqueRepository(
-    private val explicitContext: android.content.Context? = null,
-    private val supabaseService: SupabaseService = SupabaseService()
+    private val explicitContext: android.content.Context? = null
 ) {
     companion object {
         private var globalContext: android.content.Context? = null
 
         fun initialize(context: android.content.Context) {
             globalContext = context.applicationContext
+            getInstance(context)
         }
 
         @Volatile
@@ -47,8 +47,16 @@ class MosqueRepository(
     private val effectiveContext: android.content.Context?
         get() = explicitContext ?: globalContext
 
+    private val supabaseService: SupabaseService by lazy {
+        SupabaseService()
+    }
+
     private val database: MosqueDatabase? by lazy {
-        effectiveContext?.let { MosqueDatabase.getDatabase(it) }
+        try {
+            effectiveContext?.let { MosqueDatabase.getDatabase(it) }
+        } catch (t: Throwable) {
+            null
+        }
     }
 
     private val repositoryScope = CoroutineScope(Dispatchers.IO)

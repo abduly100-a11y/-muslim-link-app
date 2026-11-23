@@ -3,12 +3,19 @@ package com.mosque.community
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -37,11 +44,33 @@ import com.mosque.community.viewmodel.MosqueViewModel
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        MosqueRepository.initialize(this)
-        com.mosque.community.util.notification.NotificationHelper.createNotificationChannels(this)
+
+        var crashDetails: String? = null
+        try {
+            MosqueRepository.initialize(this)
+            com.mosque.community.util.notification.NotificationHelper.createNotificationChannels(this)
+        } catch (t: Throwable) {
+            crashDetails = "Initialization Error:\n${t.message}\n\n${android.util.Log.getStackTraceString(t)}"
+        }
+
         setContent {
             MosqueCommunityTheme {
-                MosqueApp()
+                if (crashDetails != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Text(
+                            text = crashDetails!!,
+                            color = Color(0xFFFF6B6B),
+                            fontSize = 12.sp
+                        )
+                    }
+                } else {
+                    MosqueApp()
+                }
             }
         }
     }

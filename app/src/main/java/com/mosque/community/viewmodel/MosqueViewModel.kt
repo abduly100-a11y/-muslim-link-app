@@ -24,11 +24,17 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 class MosqueViewModel(
-    private val repository: MosqueRepository = MosqueRepository()
+    private val repository: MosqueRepository = MosqueRepository.getInstance()
 ) : ViewModel() {
 
     init {
-        syncWithBackend()
+        viewModelScope.launch {
+            try {
+                syncWithBackend()
+            } catch (t: Throwable) {
+                // Safeguard against any initial startup errors
+            }
+        }
     }
 
     private val _selectedFilter = MutableStateFlow(EventFilter.ALL)
