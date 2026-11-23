@@ -17,7 +17,7 @@ import com.mosque.community.data.local.entity.SpeakerEntity
         EventEntity::class,
         SpeakerEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class MosqueDatabase : RoomDatabase() {

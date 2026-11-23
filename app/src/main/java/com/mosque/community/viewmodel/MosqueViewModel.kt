@@ -283,6 +283,8 @@ class MosqueViewModel(
             _isRefreshing.value = true
             try {
                 repository.syncWithSupabase()
+            } catch (t: Throwable) {
+                // Safeguard against network or engine errors on launch
             } finally {
                 _isRefreshing.value = false
             }

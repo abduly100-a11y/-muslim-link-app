@@ -345,7 +345,7 @@ class MosqueRepository(
                     if (db.eventDao().getCount() == 0) {
                         db.eventDao().insertAll(_events.value.map { EventEntity.fromEvent(it) })
                     }
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
                     // Ignored in test environments or database failures
                 }
             }
@@ -389,7 +389,7 @@ class MosqueRepository(
                 db?.eventDao()?.insertAll(entities)
                 _events.value = entities.map { it.toEvent() }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             // Fail safely to retain offline cache
         }
     }
@@ -697,7 +697,7 @@ class MosqueRepository(
                         tags = event.tags
                     )
                 )
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 // Ignore sync failures to allow offline creation
             }
         }
