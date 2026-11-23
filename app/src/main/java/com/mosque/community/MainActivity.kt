@@ -46,16 +46,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         var crashDetails: String? = null
+        var viewModelInstance: MosqueViewModel? = null
+
         try {
             MosqueRepository.initialize(this)
             com.mosque.community.util.notification.NotificationHelper.createNotificationChannels(this)
+            viewModelInstance = MosqueViewModel(MosqueRepository.getInstance())
         } catch (t: Throwable) {
-            crashDetails = "Initialization Error:\n${t.message}\n\n${android.util.Log.getStackTraceString(t)}"
+            crashDetails = "CRASH ON STARTUP:\n${t.javaClass.simpleName}: ${t.message}\n\n${android.util.Log.getStackTraceString(t)}"
         }
 
         setContent {
             MosqueCommunityTheme {
-                if (crashDetails != null) {
+                if (crashDetails != null || viewModelInstance == null) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -63,13 +66,13 @@ class MainActivity : ComponentActivity() {
                             .verticalScroll(rememberScrollState())
                     ) {
                         Text(
-                            text = crashDetails!!,
+                            text = crashDetails ?: "ViewModel could not be initialized",
                             color = Color(0xFFFF6B6B),
                             fontSize = 12.sp
                         )
                     }
                 } else {
-                    MosqueApp()
+                    MosqueApp(viewModel = viewModelInstance!!)
                 }
             }
         }
@@ -79,7 +82,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MosqueApp(
     navController: NavHostController = rememberNavController(),
-    viewModel: MosqueViewModel = viewModel()
+    viewModel: MosqueViewModel
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route

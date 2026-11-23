@@ -3,6 +3,7 @@ package com.mosque.community.data.remote
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.ktor.client.engine.okhttp.OkHttp
 
 object SupabaseClientProvider {
     // These should ideally be stored in BuildConfig or secure configuration
@@ -21,6 +22,7 @@ object SupabaseClientProvider {
                 supabaseUrl = url,
                 supabaseKey = anonKey
             ) {
+                httpEngine = OkHttp.create()
                 install(Postgrest)
             }.also { client = it }
         }

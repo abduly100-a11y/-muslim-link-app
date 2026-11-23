@@ -24,8 +24,10 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 class MosqueViewModel(
-    private val repository: MosqueRepository = MosqueRepository.getInstance()
+    private val repository: MosqueRepository
 ) : ViewModel() {
+
+    constructor() : this(MosqueRepository.getInstance())
 
     init {
         viewModelScope.launch {
