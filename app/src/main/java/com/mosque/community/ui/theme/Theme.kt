@@ -47,12 +47,16 @@ fun MosqueCommunityTheme(
 
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as? Activity)?.window
-            if (window != null) {
-                window.statusBarColor = MidnightInk.toArgb()
-                window.navigationBarColor = MidnightInk.toArgb()
-                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
-                WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = false
+            try {
+                val window = (view.context as? Activity)?.window
+                if (window != null) {
+                    window.statusBarColor = MidnightInk.toArgb()
+                    window.navigationBarColor = MidnightInk.toArgb()
+                    WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+                    WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = false
+                }
+            } catch (t: Throwable) {
+                // Safeguard against OEM-specific window controller issues
             }
         }
     }

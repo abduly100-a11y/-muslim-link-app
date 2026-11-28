@@ -23,28 +23,32 @@ object NotificationHelper {
     const val EXTRA_TARGET_URL = "extra_target_url"
 
     fun createNotificationChannels(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
 
-            val prayerChannel = NotificationChannel(
-                CHANNEL_PRAYER,
-                "Prayer Times & Iqamah Alerts",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notifies you prior to Adhan and congregational Iqamah times"
-                enableVibration(true)
+                val prayerChannel = NotificationChannel(
+                    CHANNEL_PRAYER,
+                    "Prayer Times & Iqamah Alerts",
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "Notifies you prior to Adhan and congregational Iqamah times"
+                    enableVibration(true)
+                }
+
+                val eventChannel = NotificationChannel(
+                    CHANNEL_EVENTS,
+                    "Community Event Reminders",
+                    NotificationManager.IMPORTANCE_DEFAULT
+                ).apply {
+                    description = "Reminders for lectures, halaqas, and programs you registered for"
+                }
+
+                notificationManager.createNotificationChannel(prayerChannel)
+                notificationManager.createNotificationChannel(eventChannel)
             }
-
-            val eventChannel = NotificationChannel(
-                CHANNEL_EVENTS,
-                "Community Event Reminders",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Reminders for lectures, halaqas, and programs you registered for"
-            }
-
-            notificationManager.createNotificationChannel(prayerChannel)
-            notificationManager.createNotificationChannel(eventChannel)
+        } catch (t: Throwable) {
+            // Non-fatal, notification channel creation can fail silently if restricted by OEM
         }
     }
 

@@ -53,28 +53,39 @@ class MainActivity : ComponentActivity() {
             com.mosque.community.util.notification.NotificationHelper.createNotificationChannels(this)
             viewModelInstance = MosqueViewModel(MosqueRepository.getInstance())
         } catch (t: Throwable) {
+            android.util.Log.e("MainActivity", "Startup initialization failed", t)
             crashDetails = "CRASH ON STARTUP:\n${t.javaClass.simpleName}: ${t.message}\n\n${android.util.Log.getStackTraceString(t)}"
         }
 
-        setContent {
-            MosqueCommunityTheme {
-                if (crashDetails != null || viewModelInstance == null) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp)
-                            .verticalScroll(rememberScrollState())
-                    ) {
-                        Text(
-                            text = crashDetails ?: "ViewModel could not be initialized",
-                            color = Color(0xFFFF6B6B),
-                            fontSize = 12.sp
-                        )
+        try {
+            setContent {
+                MosqueCommunityTheme {
+                    if (crashDetails != null || viewModelInstance == null) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(24.dp)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            Text(
+                                text = crashDetails ?: "ViewModel could not be initialized",
+                                color = Color(0xFFFF6B6B),
+                                fontSize = 12.sp
+                            )
+                        }
+                    } else {
+                        MosqueApp(viewModel = viewModelInstance!!)
                     }
-                } else {
-                    MosqueApp(viewModel = viewModelInstance!!)
                 }
             }
+        } catch (t: Throwable) {
+            android.util.Log.e("MainActivity", "Fatal Compose initialization error", t)
+            val intent = android.content.Intent(this, CrashReportActivity::class.java).apply {
+                putExtra("crash_details", "COMPOSE INITIALIZATION CRASH:\n${t.javaClass.name}: ${t.message}\n\n${android.util.Log.getStackTraceString(t)}")
+                flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(intent)
+            finish()
         }
     }
 }

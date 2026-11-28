@@ -62,7 +62,11 @@ class MosqueRepository(
     private val repositoryScope = CoroutineScope(Dispatchers.IO)
 
     private val prefs: android.content.SharedPreferences?
-        get() = effectiveContext?.getSharedPreferences("muslim_link_prefs", android.content.Context.MODE_PRIVATE)
+        get() = try {
+            effectiveContext?.getSharedPreferences("muslim_link_prefs", android.content.Context.MODE_PRIVATE)
+        } catch (t: Throwable) {
+            null
+        }
 
     private val initialMosques = listOf(
         Mosque(
